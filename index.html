@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrationer: IMS Case — XFlow Support</title>
+    <meta name="description" content="Få indsigt i integrationen til IMS Case (Visma Case) med XFlow. Lær om opsætning af dataafleveringer til sager, kontakter og dokumenter.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --xflow-dark: #1a1a2e;
+            --xflow-blue: #2563eb;
+            --xflow-blue-hover: #1d4ed8;
+            --xflow-blue-light: #dbeafe;
+            --xflow-blue-bg: #eff6ff;
+            --xflow-navy: #0f172a;
+            --bg: #ffffff;
+            --bg-page: #f8fafc;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --text: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --success: #16a34a;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --warning: #ca8a04;
+            --warning-bg: #fefce8;
+            --warning-border: #fef08a;
+            --error: #dc2626;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --code-bg: #f1f5f9;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background: var(--bg-page);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top bar ── */
+        .top-bar {
+            background: var(--xflow-navy);
+            padding: 10px 0;
+            font-size: 13px;
+        }
+        .top-bar .container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+        }
+        .top-bar a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .top-bar a:hover { color: white; }
+
+        /* ── Header ── */
+        .site-header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .site-header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--xflow-blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--xflow-dark);
+        }
+        .logo-text span {
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 2px;
+        }
+        .header-nav {
+            display: flex;
+            gap: 6px;
+        }
+        .header-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .header-nav a:hover {
+            background: var(--bg-page);
+            color: var(--text);
+        }
+        .header-nav a.active {
+            background: var(--xflow-blue-light);
+            color: var(--xflow-blue);
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Breadcrumb ── */
+        .breadcrumb {
+            padding: 16px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .breadcrumb a:hover { color: var(--xflow-blue); }
+        .breadcrumb svg { width: 14px; height: 14px; color: var(--text-muted); }
+
+        /* ── Article ── */
+        .article {
+            background: var(--bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 48px 56px;
+            margin-bottom: 32px;
+        }
+
+        .article-header {
+            margin-bottom: 32px;
+        }
+        .article-category {
+            display: inline-block;
+            background: var(--xflow-blue-light);
+            color: var(--xflow-blue);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .article-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--xflow-dark);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        .article-subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .article-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .article-meta svg { width: 14px; height: 14px; }
+
+        /* ── Purpose box ── */
+        .purpose-box {
+            background: var(--xflow-blue-bg);
+            border: 1px solid var(--xflow-blue-light);
+            padding: 24px 28px;
+            border-radius: var(--radius);
+            margin-bottom: 32px;
+        }
+        .purpose-box h2 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--xflow-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .purpose-box p { margin-bottom: 10px; font-size: 15px; }
+        .purpose-box ol { margin-left: 20px; margin-top: 10px; }
+        .purpose-box li { margin-bottom: 6px; font-size: 15px; }
+
+        /* ── TOC ── */
+        .toc {
+            background: var(--bg-page);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            margin-bottom: 40px;
+        }
+        .toc h2 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .toc ol { list-style: none; counter-reset: toc; }
+        .toc > ol > li {
+            counter-increment: toc;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .toc > ol > li::before {
+            content: counter(toc) ". ";
+            font-weight: 600;
+            color: var(--xflow-blue);
+        }
+        .toc a { color: var(--text); text-decoration: none; }
+        .toc a:hover { color: var(--xflow-blue); }
+        .toc .sub { margin-left: 28px; margin-top: 4px; }
+        .toc .sub li { margin-bottom: 3px; font-size: 13px; }
+        .toc .sub li::before { content: none; }
+        .toc .sub a { color: var(--text-secondary); }
+
+        /* ── Headings ── */
+        h2.section-heading {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--xflow-dark);
+            margin-top: 48px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--xflow-blue);
+        }
+        h3.sub-heading {
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--xflow-dark);
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+        h4.field-heading {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* ── Text ── */
+        p { margin-bottom: 14px; font-size: 15px; }
+
+        /* ── Steps ── */
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .step-num {
+            background: var(--xflow-blue);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .step-content { flex: 1; font-size: 15px; }
+        .step-content strong { color: var(--xflow-dark); }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 24px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        th {
+            background: var(--xflow-navy);
+            color: white;
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+        }
+        td {
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: var(--bg-page); }
+        tbody tr:hover td { background: var(--xflow-blue-bg); }
+
+        /* ── Code ── */
+        code {
+            background: var(--code-bg);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+            color: #0f172a;
+            border: 1px solid var(--border);
+        }
+
+        /* ── Alerts ── */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .alert-info { background: var(--xflow-blue-bg); border: 1px solid #bfdbfe; }
+        .alert-warning { background: var(--warning-bg); border: 1px solid var(--warning-border); }
+        .alert-error { background: var(--error-bg); border: 1px solid var(--error-border); }
+        .alert-success { background: var(--success-bg); border: 1px solid var(--success-border); }
+
+        /* ── Output badge ── */
+        .output-badge {
+            display: inline-block;
+            background: var(--success-bg);
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--success-border);
+            margin-left: 6px;
+        }
+
+        .required { color: var(--error); font-weight: 700; }
+
+        /* ── Flow diagram ── */
+        .flow-diagram { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+        .flow-step { display: flex; align-items: center; gap: 16px; }
+        .flow-num {
+            background: var(--xflow-blue);
+            color: white;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 16px; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+        .flow-box {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            flex: 1;
+            transition: border-color 0.2s;
+        }
+        .flow-box:hover { border-color: var(--xflow-blue); }
+        .flow-box strong { color: var(--xflow-dark); font-size: 15px; }
+        .flow-box .flow-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .flow-box .flow-output {
+            font-size: 13px; color: var(--success); margin-top: 6px; font-weight: 500;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .flow-arrow {
+            margin-left: 18px; color: var(--xflow-blue); font-size: 22px;
+            line-height: 1; padding: 6px 0;
+        }
+
+        /* ── Separator ── */
+        hr.section-sep { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+        /* ── Config table ── */
+        .config-table td:first-child { font-weight: 600; white-space: nowrap; width: 160px; }
+
+        /* ── Lists ── */
+        ul, ol { margin-left: 20px; margin-bottom: 14px; }
+        li { margin-bottom: 6px; font-size: 15px; }
+
+        /* ── Mapping example ── */
+        .mapping-example {
+            background: var(--bg-page);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin: 20px 0;
+        }
+        .mapping-example h4 { margin-bottom: 12px; color: var(--xflow-dark); font-size: 14px; }
+
+        /* ── Related ── */
+        .related { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+        .related h2 { font-size: 16px; margin-bottom: 14px; font-weight: 600; color: var(--text-secondary); }
+        .related-links { display: flex; flex-direction: column; gap: 8px; }
+        .related-link {
+            display: flex; align-items: center; gap: 8px;
+            color: var(--xflow-blue); text-decoration: none;
+            font-size: 14px; font-weight: 500;
+            padding: 8px 12px; border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .related-link:hover { background: var(--xflow-blue-bg); }
+        .related-link svg { width: 16px; height: 16px; }
+
+        /* ── Footer ── */
+        .site-footer {
+            text-align: center;
+            padding: 32px 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .site-footer a { color: var(--text-secondary); text-decoration: none; }
+        .site-footer a:hover { color: var(--xflow-blue); }
+        .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 8px; }
+
+        /* ── Print ── */
+        @media print {
+            body { background: white; }
+            .top-bar, .site-header, .breadcrumb, .site-footer { display: none; }
+            .article { box-shadow: none; padding: 0; border-radius: 0; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .article { padding: 28px 24px; }
+            .article-title { font-size: 24px; }
+            h2.section-heading { font-size: 20px; }
+            .header-nav { display: none; }
+            .top-bar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="container">
+        <a href="https://www.xflow.dk">XFlow.dk</a>
+        <a href="/kontakt">Kontakt</a>
+    </div>
+</div>
+
+<header class="site-header">
+    <div class="container">
+        <a class="logo" href="/">
+            <div class="logo-icon">X</div>
+            <div class="logo-text">XFlow <span>Support</span></div>
+        </a>
+        <nav class="header-nav">
+            <a href="/brugermanualer">Brugermanualer</a>
+            <a href="/tekniske-manualer" class="active">Tekniske manualer</a>
+            <a href="/release-notes">Release Notes</a>
+            <a href="/webinarer">Webinarer</a>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="/">XFlow Support</a>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+        <a href="/tekniske-manualer">Tekniske manualer</a>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+        <span style="color: var(--text-secondary)">Integration til IMS Case</span>
+    </nav>
+
+    <article class="article">
+
+        <div class="article-header">
+            <span class="article-category">Integration</span>
+            <h1 class="article-title">Integration til IMS Case</h1>
+            <p class="article-subtitle">XFlows integration til IMS Case (Visma Case) gør det muligt at oprette sager, kontakter og tilføje dokumenter i IMS Case via dataafleveringer i jeres XFlow-miljø. Formålet er at gøre det nemmere at sende sags- og dokumentdata videre fra XFlow til IMS Case og undgå unødvendigt manuelt arbejde.</p>
+            <div class="article-meta">
+                <span>Sidst redigeret: 16/06-2026</span>
+                <span>·</span>
+                <span>Teknisk manual</span>
+            </div>
+        </div>
+
+        <!-- Formål -->
+        <div class="purpose-box">
+            <h2>Formål</h2>
+            <p>Integrationen består af tre dataafleveringer, som kan kombineres efter behov:</p>
+            <ol>
+                <li><strong>IMS Case – opret/opdater sag</strong> – Opretter en ny sag eller opdaterer en eksisterende sag i IMS Case</li>
+                <li><strong>IMS Case – opret/opdater kontakt</strong> – Opretter eller opdaterer en kontakt og tilknytter den på en sag</li>
+                <li><strong>IMS Case – tilføj dokumenter</strong> – Tilføjer dokumenter (PDF og/eller uploadede filer) til en eksisterende sag</li>
+            </ol>
+        </div>
+
+        <!-- Indholdsfortegnelse -->
+        <div class="toc">
+            <h2>Indholdsfortegnelse</h2>
+            <ol>
+                <li><a href="#forudsaetninger">Forudsætninger for brugen af IMS Case</a></li>
+                <li><a href="#konfiguration">Konfiguration (organisationsindstillinger)</a></li>
+                <li><a href="#dataafleveringer">Opsætning af dataafleveringer</a>
+                    <ul class="sub">
+                        <li><a href="#opret-sag">3.1. Opret/opdater sag</a></li>
+                        <li><a href="#opret-kontakt">3.2. Opret/opdater kontakt</a></li>
+                        <li><a href="#tilfoej-dokumenter">3.3. Tilføj dokumenter</a></li>
+                        <li><a href="#typisk-flow">3.4. Typisk arbejdsgangsopsætning</a></li>
+                        <li><a href="#synkroniser">3.5. Synkroniser felter fra IMS Case</a></li>
+                    </ul>
+                </li>
+                <li><a href="#paa-tvaers">Sags-Id på tværs af aktiviteter</a></li>
+                <li><a href="#valgfelter">Valgfelter og Udregn værdi</a></li>
+                <li><a href="#fejlhaandtering">Fejlhåndtering</a></li>
+            </ol>
+        </div>
+
+        <!-- 1. Forudsætninger -->
+        <h2 class="section-heading" id="forudsaetninger">1. Forudsætninger for brugen af IMS Case</h2>
+        <p>For at kunne tage IMS Case-integrationen i brug, skal følgende være på plads. Kontakt <a href="/kontakt">XFlow Support</a>, hvis du har brug for hjælp.</p>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <strong>Aktivering af IMS Case i XFlow</strong><br>
+                IMS Case skal være aktiveret i jeres XFlow-miljø – dette sørger XFlow for.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <strong>Tildel den nødvendige rettighed</strong><br>
+                Brugere, der skal opsætte dataafleveringer, skal have rettigheden <em>"Anvend IMS Case-dataaflevering"</em>.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <strong>Adgangsoplysninger fra Visma IMS</strong><br>
+                I skal have følgende oplysninger fra Visma IMS:
+                <ul style="margin-top: 8px">
+                    <li><strong>API URL</strong> – URL til IMS Case-miljøet</li>
+                    <li><strong>Client ID</strong> og <strong>Client Secret</strong> – Til authentication</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 2. Konfiguration -->
+        <h2 class="section-heading" id="konfiguration">2. Konfiguration</h2>
+        <p>Når IMS Case er aktiveret, skal følgende indstillinger udfyldes i XFlow:</p>
+
+        <h3 class="sub-heading">Organisationsindstillinger</h3>
+        <p>Opsættes individuelt for hver organisation under <strong>IMS Case</strong> i organisationsindstillingerne.</p>
+        <table class="config-table">
+            <thead><tr><th>Indstilling</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td>API URL</td><td>Base URL til IMS Case Standard API'et. Udleveres af Visma IMS.</td></tr>
+                <tr><td>Client ID</td><td>Client ID anvendt til at hente bearer-token fra IMS Case. Udleveres af Visma IMS.</td></tr>
+                <tr><td>Client Secret</td><td>Client secret anvendt til at hente bearer-token fra IMS Case. Udleveres af Visma IMS.</td></tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div><strong>Vigtigt:</strong> Alle tre indstillinger er påkrævede. Hvis en eller flere mangler, virker dataafleveringerne ikke.</div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 3. Dataafleveringer -->
+        <h2 class="section-heading" id="dataafleveringer">3. Opsætning af dataafleveringer</h2>
+        <p>Dataafleveringerne tilføjes til en aktivitet i Flowdesigneren og kan derefter sættes op med de relevante mappings og værdier. Systemet tjekker automatisk, om de påkrævede felter er udfyldt.</p>
+
+        <div class="alert alert-info">
+            <span class="alert-icon">💡</span>
+            <div><strong>Sagsskabelon:</strong> Når du tilføjer <em>Opret/opdater sag</em>, vælger du en sagsskabelon fra IMS Case. XFlow henter automatisk skabelonens felter, som herefter kan mappes. For <em>Opret/opdater kontakt</em> hentes kontaktfelterne automatisk fra IMS Case uden at du skal vælge noget. Tilføjes nye felter i IMS Case, kan du bruge <a href="#synkroniser">"Synkroniser felter fra IMS Case"</a> til at opdatere feltlisten.</div>
+        </div>
+
+        <!-- 3.1 Opret/opdater sag -->
+        <h3 class="sub-heading" id="opret-sag">3.1. IMS Case – opret/opdater sag</h3>
+        <p>Opretter en ny sag i IMS Case, eller opdaterer en eksisterende sag, hvis søgekriterierne matcher.</p>
+
+        <p><strong>Output:</strong> <span class="output-badge">Dataafleveringsoutput</span></p>
+        <table>
+            <thead><tr><th>Output</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td><code>ImsCaseId</code></td><td>Id på den oprettede eller opdaterede sag. Bruges som input til de øvrige dataafleveringer.</td></tr>
+                <tr><td><code>ImsCaseNumber</code></td><td>Sagsnummer tildelt af IMS Case.</td></tr>
+            </tbody>
+        </table>
+
+        <h4 class="field-heading">Søgning på eksisterende sag</h4>
+        <p>Dataafleveringen kan søge efter en eksisterende sag, så den opdateres i stedet for at oprette en ny. Aktivér "Opret altid ny sag" for at springe søgning over.</p>
+        <p>Der kan søges på <strong>sagsnummer</strong> eller på et <strong>custom felt</strong> (fx et CPR-nummer gemt på sagen).</p>
+
+        <h4 class="field-heading">Sagsfelter</h4>
+        <p>Følgende standardfelter er tilgængelige på alle sagsskabeloner:</p>
+        <table>
+            <thead><tr><th>Felt</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td>Title</td><td>Sagstitel. Anbefales altid at udfylde.</td></tr>
+                <tr><td>Description</td><td>Sagsbeskrivelse.</td></tr>
+                <tr><td>Status</td><td>Sagsstatus: <code>active</code>, <code>passive</code> eller <code>closed</code>.</td></tr>
+                <tr><td>StartDate / EndDate</td><td>Start- og slutdato for sagen.</td></tr>
+            </tbody>
+        </table>
+
+        <p>Derudover vises <strong>custom felter</strong> fra den valgte sagsskabelon automatisk. Det kan fx være tekstfelter, datofelter, afkrydsningsfelter eller valgfelter (dropdown). Se <a href="#valgfelter">sektion 5</a> for valgfelter.</p>
+
+        <div class="alert alert-info">
+            <span class="alert-icon">💡</span>
+            <div><strong>Spøgelses-felter:</strong> IMS Case eksponerer alle felter, der teknisk eksisterer på skabelonens database-tabel. Hvis et felt tidligere har været konfigureret på skabelonen, men er fjernet i IMS Case admin, vil det stadig fremgå i XFlow. Lad felter, du ikke vil bruge, stå uberørt hen – de sender ingen værdier til IMS Case.</div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 3.2 Opret/opdater kontakt -->
+        <h3 class="sub-heading" id="opret-kontakt">3.2. IMS Case – opret/opdater kontakt</h3>
+        <p>Opretter en ny kontakt i IMS Case eller opdaterer en eksisterende. Kontakten tilknyttes automatisk som primary contact på en sag.</p>
+
+        <div class="alert alert-info">
+            <span class="alert-icon">💡</span>
+            <div>Når du tilføjer denne dataaflevering, henter XFlow automatisk kontaktfelterne fra IMS Case – du skal ikke vælge en skabelon. Kontakt-entitetstypen i IMS Case har kun én type, så felterne hentes og gemmes automatisk.</div>
+        </div>
+
+        <p><strong>Output:</strong> <span class="output-badge">Dataafleveringsoutput</span></p>
+        <table>
+            <thead><tr><th>Output</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td><code>ImsCaseContactId</code></td><td>Id på den oprettede eller opdaterede kontakt.</td></tr>
+            </tbody>
+        </table>
+
+        <p><strong>Kræver:</strong> Et <code>ImsCaseId</code> (fra <em>Opret/opdater sag</em>) skal mappes i feltet <strong>"Relater kontakt til sag (CaseId)"</strong> for at tilknytte kontakten til en sag. Dette felt er obligatorisk.</p>
+
+        <h4 class="field-heading">Søgning på eksisterende kontakt</h4>
+        <p>Dataafleveringen kan søge efter en eksisterende kontakt via tre metoder (forsøges i rækkefølge):</p>
+        <ol>
+            <li><strong>CPR-nummer</strong> – bruger det dedikerede <code>GetByCpr</code>-endpoint i IMS Case. Hurtigste og mest pålidelige opslag.</li>
+            <li><strong>Standard-felt</strong> – admin angiver et feltnavn (fx <code>FirstName</code>, <code>PersonId</code>) og en værdi. Bruger OData-filtrering.</li>
+            <li><strong>Custom felt</strong> – admin angiver et customfield-navn (fx <code>cf13_GeId</code>) og en værdi. Samme mekanisme som standard-felt.</li>
+        </ol>
+        <p>Aktivér "Opret altid ny kontakt" for at springe søgning over.</p>
+
+        <div class="alert alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div><strong>CPR-nummer:</strong> CPR-søgningen udføres <em>altid</em> – også selvom "Opret altid ny kontakt" er aktiveret – fordi IMS Case ikke tillader to kontakter med samme CPR-nummer.</div>
+        </div>
+
+        <h4 class="field-heading">Kontaktfelter</h4>
+        <p>Følgende standardfelter er typisk tilgængelige:</p>
+        <table>
+            <thead><tr><th>Felt</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td>FirstName / LastName</td><td>Kontaktens for- og efternavn.</td></tr>
+                <tr><td>Email</td><td>E-mailadresse.</td></tr>
+                <tr><td>Phone</td><td>Telefonnummer.</td></tr>
+                <tr><td>CprNumber</td><td>CPR-nummer (skal være unikt på tværs af alle kontakter).</td></tr>
+            </tbody>
+        </table>
+        <p>Derudover vises <strong>custom felter</strong> fra IMS Case's kontakt-entitetstype automatisk, præcis som ved sagsfelter. Se <a href="#valgfelter">sektion 5</a> for valgfelter.</p>
+
+        <hr class="section-sep">
+
+        <!-- 3.3 Tilføj dokumenter -->
+        <h3 class="sub-heading" id="tilfoej-dokumenter">3.3. IMS Case – tilføj dokumenter</h3>
+        <p>Tilføjer dokumenter fra arbejdsgangen til en IMS Case-sag. Understøtter både PDF af udfyldelsen og uploadede filer fra blanketten.</p>
+
+        <p><strong>Kræver:</strong> Et <code>ImsCaseId</code> (fra <em>Opret/opdater sag</em>).</p>
+
+        <table>
+            <thead><tr><th>Felt</th><th>Beskrivelse</th></tr></thead>
+            <tbody>
+                <tr><td>Tilføj PDF af udfyldelse</td><td>Angiver om der skal genereres en PDF af blanketten og uploades som dokument på sagen i IMS Case.</td></tr>
+                <tr><td>PDF-dokumenttitel</td><td>Titlen på det PDF-dokument der oprettes på sagen. Vises som dokumentnavn i IMS Case.</td></tr>
+                <tr><td>PDF Skabelon</td><td>Valgfri PDF-skabelon. Standard-PDF bruges, hvis tom.</td></tr>
+                <tr><td>Tilføj uploadede dokumenter</td><td>Angiver om brugerens uploadede filer (fra Upload-felter på blanketten) skal tilføjes som dokumenter på sagen.</td></tr>
+                <tr><td>Dokumenter</td><td>Peg på de filer der skal uploades til sagen i IMS Case.</td></tr>
+            </tbody>
+        </table>
+
+        <hr class="section-sep">
+
+        <!-- 3.4 Typisk flow -->
+        <h3 class="sub-heading" id="typisk-flow">3.4. Typisk arbejdsgangsopsætning</h3>
+        <p>Et typisk flow med IMS Case-integrationen ser sådan ud:</p>
+
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <div class="flow-num">1</div>
+                <div class="flow-box">
+                    <strong>IMS Case – opret/opdater sag</strong>
+                    <div class="flow-desc">Map sagstitel, status og øvrige felter til sagen.</div>
+                    <div class="flow-output">↳ Output: ImsCaseId, ImsCaseNumber</div>
+                </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+                <div class="flow-num">2</div>
+                <div class="flow-box">
+                    <strong>IMS Case – opret/opdater kontakt</strong>
+                    <div class="flow-desc">Map kontaktoplysninger og brug ImsCaseId fra trin 1.</div>
+                    <div class="flow-output">↳ Output: ImsCaseContactId</div>
+                </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+                <div class="flow-num">3</div>
+                <div class="flow-box">
+                    <strong>IMS Case – tilføj dokumenter</strong>
+                    <div class="flow-desc">Tilføj PDF og dokumenter til sagen fra trin 1.</div>
+                </div>
+            </div>
+        </div>
+
+        <p>Dataafleveringen <em>Opret/opdater sag</em> skal altid komme først, da de øvrige dataafleveringer kræver sagsens Id som input.</p>
+
+        <hr class="section-sep">
+
+        <!-- 3.5 Synkroniser felter -->
+        <h3 class="sub-heading" id="synkroniser">3.5. Synkroniser felter fra IMS Case</h3>
+        <p>Hvis der tilføjes nye felter eller fjernes eksisterende felter på en sagsskabelon eller kontakt-entiteten i IMS Case, kan du opdatere dataafleveringen i XFlow uden at skulle slette og genoprette den.</p>
+
+        <p>Klik på knappen <strong>"Synkroniser felter fra IMS Case"</strong> i bunden af dataafleveringens mapping-visning. Funktionen er tilgængelig for både <em>Opret/opdater sag</em> og <em>Opret/opdater kontakt</em>.</p>
+
+        <h4 class="field-heading">Sådan fungerer synkroniseringen</h4>
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <strong>For sager:</strong> XFlow henter sagsskabelonerne fra IMS Case. Du kan vælge at beholde den nuværende skabelon eller skifte til en anden. Ved skift opdateres EntitySetName automatisk.
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <strong>For kontakter:</strong> XFlow henter kontaktfelterne direkte fra IMS Case. Der er ingen skabelon at vælge.
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                Felterne på dataafleveringen opdateres: nye felter tilføjes, fjernede felter fjernes. <strong>Eksisterende mapninger bevares</strong>, hvis feltet stadig findes i IMS Case. Mapninger til XFlow's egne felter (søgeparametre, "opret altid ny" m.m.) bevares altid.
+            </div>
+        </div>
+
+        <div class="alert alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div><strong>Bemærk:</strong> Synkroniseringen gemmes med det samme og kan ikke fortrydes. Mapninger til felter, der er fjernet i IMS Case, går tabt.</div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 4. På tværs af aktiviteter -->
+        <h2 class="section-heading" id="paa-tvaers">4. Sags-Id på tværs af aktiviteter</h2>
+        <p>Når dataafleveringerne ligger på <strong>samme aktivitet</strong> i flowet, kan ImsCaseId bruges direkte som dataafleveringsoutput.</p>
+        <p>Hvis dataafleveringerne ligger på <strong>forskellige aktiviteter</strong>, skal der bruges et <strong>linkparameter</strong>:</p>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                Åbn fanen <strong>Links</strong> på arbejdsgangskabelonen, og tilføj et linkparameter med navnet <code>ImsCaseId</code> (staves præcist).
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                I dataafleveringernes mapping vælges <strong>Link parameter</strong> og værdien sættes til <code>ImsCaseId</code>.
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <span class="alert-icon">💡</span>
+            <div>Det samme gælder for <code>ImsCaseContactId</code>, hvis kontaktens Id skal bruges på en senere aktivitet.</div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 5. Valgfelter -->
+        <h2 class="section-heading" id="valgfelter">5. Valgfelter og Udregn værdi</h2>
+
+        <p>Visse felter i IMS Case er <strong>valgfelter</strong> (dropdown/lister). Disse felter ender på <code>_ID</code> i feltnavnet og kræver et specifikt <strong>Id</strong> som værdi – ikke den læsbare tekst.</p>
+
+        <h3 class="sub-heading">Se gyldige værdier</h3>
+        <p>Ved alle valgfelter vises en <strong>"Se værdimuligheder"</strong>-knap. Klik på den for at åbne en søgbar liste over gyldige Id'er og værdier. Klik på et Id for at kopiere det.</p>
+
+        <div class="mapping-example">
+            <h4>Eksempel</h4>
+            <table>
+                <thead><tr><th>Id</th><th>Værdi</th></tr></thead>
+                <tbody>
+                    <tr><td><code>0</code></td><td>Kommune 1</td></tr>
+                    <tr><td><code>1</code></td><td>Kommune 2</td></tr>
+                    <tr><td><code>2</code></td><td>Kommune 3</td></tr>
+                </tbody>
+            </table>
+            <p style="font-style: italic; color: var(--text-muted); margin-bottom: 0;">For at sætte "Kommune 2" skal værdien være <code>1</code> (Id'et).</p>
+        </div>
+
+        <h3 class="sub-heading">Brug "Udregn værdi" til automatisk oversættelse</h3>
+        <p>Når brugeren vælger en tekst i blanketten (fx "Kommune 2"), men IMS Case kræver det tilhørende Id (fx <code>1</code>), kan <strong>"Udregn værdi"</strong> bruges til automatisk at oversætte:</p>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">Vælg <strong>"Opsæt udregning af værdi"</strong> som bindingstype i mappingen.</div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">Klik <strong>"Udregn værdi"</strong> og opsæt en regel for hver mulig blanketværdi og det tilhørende Id.</div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">Gentag for alle værdier. XFlow oversætter herefter automatisk ved kørsel.</div>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- 6. Fejlhåndtering -->
+        <h2 class="section-heading" id="fejlhaandtering">6. Fejlhåndtering</h2>
+
+        <p>Hvis noget går galt under kørsel af dataafleveringerne, vises en fejlbesked. De mest almindelige årsager er:</p>
+
+        <div class="alert alert-error">
+            <span class="alert-icon">❌</span>
+            <div>
+                <strong>Manglende konfiguration</strong> – API URL, Client ID eller Client Secret er ikke udfyldt. Tjek organisationsindstillingerne.
+            </div>
+        </div>
+
+        <div class="alert alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div>
+                <strong>Manglende sagsskabelon</strong> – Sagsskabelonen er ikke valgt i engangsdialogen. Åbn dataafleveringen og vælg en skabelon.
+            </div>
+        </div>
+
+        <div class="alert alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div>
+                <strong>Valideringsfejl</strong> – Obligatoriske felter mangler, fx sagstitel eller sags-Id. Dataafleveringen angiver, hvilke felter der mangler.
+            </div>
+        </div>
+
+        <p>Ved vedvarende fejl, kontakt <a href="/kontakt">XFlow Support</a>.</p>
+
+        <!-- Relaterede artikler -->
+        <div class="related">
+            <h2>Relaterede artikler</h2>
+            <div class="related-links">
+                <a class="related-link" href="/dataafleveringer-a-z">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z"/><path d="M11.603 7.963a.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865z"/></svg>
+                    A-Z dataafleveringer
+                </a>
+                <a class="related-link" href="/opsaetning-af-api-dataaflevering">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z"/><path d="M11.603 7.963a.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865z"/></svg>
+                    Opsætning af API
+                </a>
+                <a class="related-link" href="/tabel-og-listevaerdi-i-dataaflevering">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z"/><path d="M11.603 7.963a.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865z"/></svg>
+                    Tabel og listeværdi i dataaflevering
+                </a>
+            </div>
+        </div>
+
+    </article>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-links">
+        <a href="https://www.xflow.dk">XFlow</a>
+        <a href="/kontakt">Kontakt</a>
+        <a href="https://www.xflow.dk/privatlivs-og-cookiepolitik">Privatlivs- og cookiepolitik</a>
+        <a href="https://www.visma.dk">Visma.dk</a>
+    </div>
+    <p>© XFlow · Axel Kiers Vej 5A, 8270 Højbjerg · CVR: 37098922</p>
+</footer>
+
+</body>
+</html>
